@@ -21,21 +21,12 @@ const FactoryScheduler = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load cached data from localStorage on component mount
-  // useEffect(() => {
-  //   const cachedData = JSON.parse(localStorage.getItem('factorySchedulerInputData'));
-  //   if (cachedData) {
-  //     setInputData(cachedData);
-  //   }
-  // }, []);
-
   const handleInputChange = (e, key) => {
     const updatedInputData = {
       ...inputData,
       [key]: e.target.value,
     };
     setInputData(updatedInputData);
-    // localStorage.setItem('factorySchedulerInputData', JSON.stringify(updatedInputData)); // Cache the input data
   };
 
   const createSchedule = async () => {
@@ -72,36 +63,7 @@ const FactoryScheduler = () => {
       setPlannedSchedule(data);
     } catch (apiError) {
       console.error('API request failed:', apiError);
-
-      const fallbackSchedule = {
-        ProductionUnit: {
-          "13862": "BI4 Machine"
-        },
-        Prod_Id: {
-          "13862": 1252
-        },
-        ForecastStartTime: {
-          "13862": 1725628920000
-        },
-        ForecastEndTime: {
-          "13862": 1725682679000
-        },
-        ForecastQuantity: {
-          "13862": 202.18
-        },
-        Grade: {
-          "13862": "Grade4"
-        },
-        OptimizedSchedule: {
-          "13862": {
-            StartTime: 1725628920000 + 3600000,
-            EndTime: 1725682679000 - 3600000
-          }
-        }
-      };
-
-      setPlannedSchedule(fallbackSchedule);
-      setError('Failed to fetch schedule from API. Displaying fallback schedule.');
+      setError('Failed to fetch schedule from API.');
     } finally {
       setIsLoading(false);
     }

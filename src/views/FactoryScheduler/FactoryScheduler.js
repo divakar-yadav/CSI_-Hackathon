@@ -34,13 +34,15 @@ const FactoryScheduler = () => {
     setError(null);
   
     try {
-      const parsedData = Object.fromEntries(
+      const sanitizedData = Object.fromEntries(
         Object.entries(inputData).map(([key, value]) => {
+          // Replace NaN, Infinity, and undefined with null for each JSON string value
+          const sanitizedValue = value.replace(/\bNaN\b|\bInfinity\b|\bundefined\b/g, 'null');
           try {
-            return [key, JSON.parse(value)];
+            return [key, JSON.parse(sanitizedValue)];
           } catch (parseError) {
             console.warn(`Failed to parse value for key "${key}":`, parseError);
-            return [key, value]; // If parsing fails, return the raw value
+            return [key, null]; // Fallback to null if parsing fails
           }
         })
       );
@@ -51,7 +53,7 @@ const FactoryScheduler = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(parsedData),
+        body: JSON.stringify(sanitizedData),
       });
   
       if (!response.ok) {
@@ -97,6 +99,7 @@ const FactoryScheduler = () => {
       setIsLoading(false);
     }
   };
+  
   
 
   const copyToClipboard = () => {

@@ -32,22 +32,20 @@ const FactoryScheduler = () => {
     setIsLoading(true);
     setIsCopied(false);
     setError(null);
-  
+
     try {
       const sanitizedData = Object.fromEntries(
         Object.entries(inputData).map(([key, value]) => {
-          // Replace NaN, Infinity, and undefined with null for each JSON string value
           const sanitizedValue = value.replace(/\bNaN\b|\bInfinity\b|\bundefined\b/g, 'null');
           try {
             return [key, JSON.parse(sanitizedValue)];
           } catch (parseError) {
             console.warn(`Failed to parse value for key "${key}":`, parseError);
-            return [key, null]; // Fallback to null if parsing fails
+            return [key, null];
           }
         })
       );
-  
-      // POST request to the API endpoint
+
       const response = await fetch('https://api.syncpro.cloud/generate-schedule', {
         method: 'POST',
         headers: {
@@ -55,17 +53,16 @@ const FactoryScheduler = () => {
         },
         body: JSON.stringify(sanitizedData),
       });
-  
+
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
-  
+
       const data = await response.json();
       setPlannedSchedule(data);
     } catch (apiError) {
       console.error('API request failed:', apiError);
-      
-      // Updated fallback schedule format to match the expected format
+
       const fallbackSchedule = {
         ProductionUnit: {
           "13862": "BI4 Machine"
@@ -92,21 +89,33 @@ const FactoryScheduler = () => {
           }
         }
       };
-  
+
       setPlannedSchedule(fallbackSchedule);
       setError('Failed to fetch schedule from API. Displaying fallback schedule.');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  
 
   const copyToClipboard = () => {
     if (plannedSchedule) {
       navigator.clipboard.writeText(JSON.stringify(plannedSchedule, null, 2));
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset copied status after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  const downloadSchedule = () => {
+    if (plannedSchedule) {
+      const blob = new Blob([JSON.stringify(plannedSchedule, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'planningSchedule.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url); // Clean up the URL object
     }
   };
 
@@ -141,6 +150,9 @@ const FactoryScheduler = () => {
           <button className="copy-button" onClick={copyToClipboard}>
             {isCopied ? 'Copied!' : 'Copy to Clipboard'}
           </button>
+          <button className="download-button" onClick={downloadSchedule}>
+            Download Schedule
+          </button>
           <h3>Generated Planned Schedule:</h3>
           <ReactJson
             src={plannedSchedule}
@@ -149,7 +161,7 @@ const FactoryScheduler = () => {
             iconStyle="triangle"
             enableClipboard={false}
             displayDataTypes={false}
-            collapsed={1} // Start with data collapsed to one level
+            collapsed={1}
           />
         </div>
       )}

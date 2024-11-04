@@ -32,12 +32,19 @@ const FactoryScheduler = () => {
     setIsLoading(true);
     setIsCopied(false);
     setError(null);
-
+  
     try {
       const parsedData = Object.fromEntries(
-        Object.entries(inputData).map(([key, value]) => [key, JSON.parse(value)])
+        Object.entries(inputData).map(([key, value]) => {
+          try {
+            return [key, JSON.parse(value)];
+          } catch (parseError) {
+            console.warn(`Failed to parse value for key "${key}":`, parseError);
+            return [key, value]; // If parsing fails, return the raw value
+          }
+        })
       );
-
+  
       // POST request to the API endpoint
       const response = await fetch('https://api.syncpro.cloud/generate-schedule', {
         method: 'POST',
@@ -46,11 +53,11 @@ const FactoryScheduler = () => {
         },
         body: JSON.stringify(parsedData),
       });
-
+  
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
-
+  
       const data = await response.json();
       setPlannedSchedule(data);
     } catch (apiError) {
@@ -83,13 +90,14 @@ const FactoryScheduler = () => {
           }
         }
       };
-
+  
       setPlannedSchedule(fallbackSchedule);
       setError('Failed to fetch schedule from API. Displaying fallback schedule.');
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const copyToClipboard = () => {
     if (plannedSchedule) {

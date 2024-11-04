@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactJson from 'react-json-view';
 import './FactoryScheduler.css';
 
@@ -21,11 +21,21 @@ const FactoryScheduler = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState(null);
 
+  // Load cached data from localStorage on component mount
+  useEffect(() => {
+    const cachedData = JSON.parse(localStorage.getItem('factorySchedulerInputData'));
+    if (cachedData) {
+      setInputData(cachedData);
+    }
+  }, []);
+
   const handleInputChange = (e, key) => {
-    setInputData({
+    const updatedInputData = {
       ...inputData,
       [key]: e.target.value,
-    });
+    };
+    setInputData(updatedInputData);
+    localStorage.setItem('factorySchedulerInputData', JSON.stringify(updatedInputData)); // Cache the input data
   };
 
   const createSchedule = async () => {
@@ -119,6 +129,23 @@ const FactoryScheduler = () => {
     }
   };
 
+  const clearCache = () => {
+    localStorage.removeItem('factorySchedulerInputData'); // Clear cached data from localStorage
+    setInputData({
+      initialPOs: '',
+      inventoryGradeCount: '',
+      plannedDemandConverting: '',
+      plannedDemandTM: '',
+      reservedTimes: '',
+      SKU_Converting_Specs_Dict: '',
+      SKU_Pull_Rate_Dict: '',
+      SKU_TM_Specs: '',
+      currentTimeUTC: '',
+      scrapFactor: '',
+      planningRateDict: '',
+    });
+  };
+
   return (
     <div className="container">
       <h2 className="header">Kimberly Clark Production Scheduler</h2>
@@ -140,6 +167,10 @@ const FactoryScheduler = () => {
 
       <button className="generate-button" onClick={createSchedule} disabled={isLoading}>
         {isLoading ? 'Creating Schedule...' : 'Generate Planned Schedule'}
+      </button>
+
+      <button className="clear-cache-button" onClick={clearCache}>
+        Clear Cache
       </button>
 
       {isLoading && <p className="loading-text">Processing... Please wait.</p>}

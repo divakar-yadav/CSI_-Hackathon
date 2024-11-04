@@ -18,6 +18,8 @@ const FactoryScheduler = () => {
       const parsedData = JSON.parse(inputJson);
 
       // POST request to the API endpoint
+      // 'http://127.0.0.1:5000/generate-schedule'
+
       const response = await fetch('https://api.syncpro.cloud/generate-schedule', {
         method: 'POST',
         headers: {
@@ -70,7 +72,7 @@ const FactoryScheduler = () => {
 
   return (
     <div className="container">
-      <h2 className="header">Factory Production Scheduler Demo</h2>
+      <h2 className="header">Kimberly Clark Production Scheduler</h2>
       <p className="instructions">
         Paste the order and demand JSON data below to generate an optimized production schedule.
       </p>

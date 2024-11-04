@@ -3,11 +3,30 @@ import ReactJson from 'react-json-view';
 import './FactoryScheduler.css';
 
 const FactoryScheduler = () => {
-  const [inputJson, setInputJson] = useState('');
+  const [inputData, setInputData] = useState({
+    initialPOs: '',
+    inventoryGradeCount: '',
+    plannedDemandConverting: '',
+    plannedDemandTM: '',
+    reservedTimes: '',
+    SKU_Converting_Specs_Dict: '',
+    SKU_Pull_Rate_Dict: '',
+    SKU_TM_Specs: '',
+    currentTimeUTC: '',
+    scrapFactor: '',
+    planningRateDict: '',
+  });
   const [plannedSchedule, setPlannedSchedule] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleInputChange = (e, key) => {
+    setInputData({
+      ...inputData,
+      [key]: e.target.value,
+    });
+  };
 
   const createSchedule = async () => {
     setIsLoading(true);
@@ -15,11 +34,11 @@ const FactoryScheduler = () => {
     setError(null);
 
     try {
-      const parsedData = JSON.parse(inputJson);
+      const parsedData = Object.fromEntries(
+        Object.entries(inputData).map(([key, value]) => [key, JSON.parse(value)])
+      );
 
       // POST request to the API endpoint
-      // 'http://127.0.0.1:5000/generate-schedule'
-
       const response = await fetch('https://api.syncpro.cloud/generate-schedule', {
         method: 'POST',
         headers: {
@@ -36,25 +55,35 @@ const FactoryScheduler = () => {
       setPlannedSchedule(data);
     } catch (apiError) {
       console.error('API request failed:', apiError);
-      // Fallback to hardcoded schedule
+      
+      // Updated fallback schedule format to match the expected format
       const fallbackSchedule = {
-        "13862": {
-          ProductionUnit: "BI4 Machine",
-          ProcessOrder: "513904663",
-          ProductionPlanStatus: "Active",
-          Prod_Id: 1252,
-          Forecast: {
-            StartTime: 1725628920000,
-            EndTime: 1725682679000,
-            Quantity: 202.18,
-          },
-          Grade: "Grade4",
-          OptimizedSchedule: {
-            StartTime: 1725628920000 + 3600000,
-            EndTime: 1725682679000 - 3600000,
-          },
+        ProductionUnit: {
+          "13862": "BI4 Machine"
         },
+        Prod_Id: {
+          "13862": 1252
+        },
+        ForecastStartTime: {
+          "13862": 1725628920000
+        },
+        ForecastEndTime: {
+          "13862": 1725682679000
+        },
+        ForecastQuantity: {
+          "13862": 202.18
+        },
+        Grade: {
+          "13862": "Grade4"
+        },
+        OptimizedSchedule: {
+          "13862": {
+            StartTime: 1725628920000 + 3600000,
+            EndTime: 1725682679000 - 3600000
+          }
+        }
       };
+
       setPlannedSchedule(fallbackSchedule);
       setError('Failed to fetch schedule from API. Displaying fallback schedule.');
     } finally {
@@ -74,19 +103,28 @@ const FactoryScheduler = () => {
     <div className="container">
       <h2 className="header">Kimberly Clark Production Scheduler</h2>
       <p className="instructions">
-        Paste the order and demand JSON data below to generate an optimized production schedule.
+        Paste the JSON data for each required input below to generate an optimized production schedule.
       </p>
-      <textarea
-        rows="10"
-        value={inputJson}
-        onChange={(e) => setInputJson(e.target.value)}
-        placeholder="Paste the JSON input here"
-      />
+      
+      {Object.keys(inputData).map((key) => (
+        <div key={key} className="input-container">
+          <label>{key.replace(/_/g, ' ')}:</label>
+          <textarea
+            rows="5"
+            value={inputData[key]}
+            onChange={(e) => handleInputChange(e, key)}
+            placeholder={`Paste the ${key} JSON here`}
+          />
+        </div>
+      ))}
+
       <button className="generate-button" onClick={createSchedule} disabled={isLoading}>
         {isLoading ? 'Creating Schedule...' : 'Generate Planned Schedule'}
       </button>
+
       {isLoading && <p className="loading-text">Processing... Please wait.</p>}
       {error && <p className="error-text">{error}</p>}
+
       {plannedSchedule && (
         <div className="output-container">
           <button className="copy-button" onClick={copyToClipboard}>

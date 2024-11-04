@@ -23,15 +23,16 @@
 }
 
 textarea {
-  width: 100%;
-  padding: 12px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  resize: vertical;
-  margin-bottom: 10px;
-  font-family: monospace;
-  background-color: #fafafa;
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    margin-bottom: 10px;
+    padding: 12px;
+    padding-right: 0px;
+    resize: vertical;
+    width: 98%;
 }
 
 .generate-button {

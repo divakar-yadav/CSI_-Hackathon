@@ -131,7 +131,7 @@ const FactoryScheduler = () => {
 
   return (
     <div className="container">
-      <h2 className="header">Kimberly Clark Production Scheduler</h2>
+      <h2 className="header">Kimberly Clark Production Schedule Generator</h2>
       <p className="instructions">
         Paste the JSON data for each required input below to generate an optimized production schedule.
       </p>
